@@ -57,6 +57,20 @@ public:
 static CFPSLimit limit;
 
 //---------------------------------------------------------------------------
+
+#define EXPORT(hr) extern "C" __declspec(dllexport) hr __stdcall
+
+#ifdef _MSC_VER
+# if defined(_M_AMD64) || defined(_M_X64)
+#  pragma comment(linker, "/EXPORT:V2Link")
+#  pragma comment(linker, "/EXPORT:V2Unlink")
+# else
+#pragma comment(linker, "/EXPORT:V2Link=_V2Link@4")
+#pragma comment(linker, "/EXPORT:V2Unlink=_V2Unlink@0")
+#endif
+#endif
+
+extern "C"
 int WINAPI
 DllEntryPoint(HINSTANCE /*hinst*/, unsigned long /*reason*/, void* /*lpReserved*/)
 {
@@ -64,7 +78,7 @@ DllEntryPoint(HINSTANCE /*hinst*/, unsigned long /*reason*/, void* /*lpReserved*
 }
 
 static tjs_int GlobalRefCountAtInit = 0;
-extern "C" __declspec(dllexport) HRESULT __stdcall V2Link(iTVPFunctionExporter *exporter)
+EXPORT(HRESULT) V2Link(iTVPFunctionExporter *exporter)
 {
 	// スタブの初期化(必ず記述する)
 	TVPInitImportStub(exporter);
@@ -96,7 +110,7 @@ extern "C" __declspec(dllexport) HRESULT __stdcall V2Link(iTVPFunctionExporter *
 
 
 //---------------------------------------------------------------------------
-extern "C" __declspec(dllexport) HRESULT __stdcall V2Unlink()
+EXPORT(HRESULT) V2Unlink()
 {
 	if(TVPPluginGlobalRefCount > GlobalRefCountAtInit) return E_FAIL;
 
